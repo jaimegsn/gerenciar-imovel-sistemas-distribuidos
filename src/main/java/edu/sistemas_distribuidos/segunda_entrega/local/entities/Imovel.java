@@ -1,4 +1,4 @@
-package edu.sistemas_distribuidos.segunda_entrega;
+package edu.sistemas_distribuidos.segunda_entrega.local.entities;
 
 public class Imovel {
     private String nomeProprietario;
