@@ -5,10 +5,20 @@ public class Imovel {
     private String endereco;
     private double preco;
 
+    private int id;
+
     public Imovel(String nomeProprietario, String endereco, double preco) {
         this.nomeProprietario = nomeProprietario;
         this.endereco = endereco;
         this.preco = preco;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNomeProprietario() {

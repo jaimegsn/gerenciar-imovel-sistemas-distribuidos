@@ -7,18 +7,23 @@ import edu.sistemas_distribuidos.terceira_entrega.server.services.DespachanteGer
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.*;
 
 public class UDPServer {
 
-    static DatagramSocket socket;
-    static DatagramPacket packetReceived;
-    static byte[] messageReceived;
+    public static DatagramSocket socket;
+    public static DatagramPacket packetReceived;
+
+    public static byte[] messageReceived;
+
+    private static Set<byte[]> lastsReq = new HashSet<>();
 
     static {
         try {
             socket = new DatagramSocket(5000);
             messageReceived = new byte[1024];
             packetReceived = new DatagramPacket(messageReceived, messageReceived.length);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,11 +41,14 @@ public class UDPServer {
     }
 
     private static void sendReply(byte[] response) {
+
         try {
             InetAddress ipClient = packetReceived.getAddress();
             int portaClient = packetReceived.getPort();
             DatagramPacket sendPacket = new DatagramPacket(response, response.length, ipClient, portaClient);
             socket.send(sendPacket);
+            lastsReq.clear();
+            getRequest();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,18 +64,36 @@ public class UDPServer {
         return new Gson().fromJson(String.valueOf(sb), Mensagem.class);
     }
 
+
     public static void main(String[] args) {
-            Mensagem mensagem = desempacotaMensagem(getRequest());
+        while (true) {
+            if (fluxo().equals("close"))
+                break;
+        }
+    }
+
+    public static String fluxo() {
+        byte[] mensagemEmpacotada = getRequest();
+
+
+        if (mensagemEmpacotada != null && !lastsReq.contains(mensagemEmpacotada)) {
+            lastsReq.add(mensagemEmpacotada);
+            Mensagem mensagem = desempacotaMensagem(mensagemEmpacotada);
+            if (new String(mensagem.getArguments()).equals("closeSocket")) {
+                try {
+                    socket.close();
+                    return "close";
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             switch (mensagem.getRemoteObjectRef()) {
                 case "Imovel":
                     sendReply(DespachanteGerenciarImovel.selecionarEsqueleto(mensagem));
+                    //lastReq = null;
                     break;
             }
-        try {
-            socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
+        return "";
     }
 }

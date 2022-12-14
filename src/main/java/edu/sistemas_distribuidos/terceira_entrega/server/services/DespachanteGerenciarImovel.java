@@ -7,6 +7,19 @@ import java.lang.reflect.Method;
 
 public class DespachanteGerenciarImovel {
     public static byte[] selecionarEsqueleto(Mensagem mensagem) {
+        erroRetransmissao();
+        return fluxo(mensagem);
+    }
+
+    public static void erroRetransmissao() {
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static byte[] fluxo(Mensagem mensagem) {
         Class<?> objRef = null;
         Method method = null;
         byte[] resposta = null;
@@ -18,6 +31,7 @@ public class DespachanteGerenciarImovel {
             method = objRef.getMethod(mensagem.getMethodId(), byte[].class);
 
             //Definindo parâmetros
+
             Object[] parametros = new Object[1];
             parametros[0] = mensagem.getArguments();
 

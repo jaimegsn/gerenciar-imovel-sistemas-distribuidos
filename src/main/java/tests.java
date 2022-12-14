@@ -1,13 +1,12 @@
 import java.lang.reflect.Method;
 
 
-// Estava vendo o funcionamento do Reflection
+// Reflection
 class ClasseTest {
     public static void imprime(String mensagem) {
         System.out.println(mensagem);
     }
 }
-
 
 public class tests {
     public static void main(String[] args) {

@@ -3,6 +3,7 @@ package edu.sistemas_distribuidos.terceira_entrega.local.proxys;
 import com.google.gson.Gson;
 import edu.sistemas_distribuidos.terceira_entrega.local.UDPClient;
 import edu.sistemas_distribuidos.terceira_entrega.local.entities.Imovel;
+import edu.sistemas_distribuidos.terceira_entrega.local.entities.Parametro;
 import edu.sistemas_distribuidos.terceira_entrega.message.Mensagem;
 
 import java.io.FileWriter;
@@ -19,6 +20,22 @@ public class ProxyGerenciarImovel {
         return new String(doOperation("Imovel", "cadastrarImovel", imovelInJson.getBytes()));
     }
 
+    public static String buscarImovel(Parametro parametro) {
+        String parametroInJson = new Gson().toJson(parametro);
+        return new String(doOperation("Imovel", "buscarImovel", parametroInJson.getBytes()));
+    }
+
+    public static String removerImovel(Parametro parametro) {
+        String parametroInJson = new Gson().toJson(parametro);
+        return new String(doOperation("Imovel", "removerImovel", parametroInJson.getBytes()));
+    }
+
+    public static String editarImovel(Parametro parametro, Imovel imovel) {
+        parametro.setImovel(imovel);
+        String parametroInJson = new Gson().toJson(parametro);
+        return new String(doOperation("Imovel", "editarImovel", parametroInJson.getBytes()));
+    }
+
 
     /**
      * Envia uma mensagem de requisição para o objeto remoto e retorna a resposta
@@ -33,10 +50,20 @@ public class ProxyGerenciarImovel {
 
         // Envio
         UDPClient.sendRequest(request);
-
-        Mensagem mensagem = desempacotaMensagem(UDPClient.getReply());
-
-        return mensagem.getArguments();
+        if (!new String(args).equals("closeSocket")) {
+            System.out.println("Aqui ->> " + new String(request));
+            int tentativa = 1;
+            Mensagem mensagem;
+            while (true) {
+                mensagem = desempacotaMensagem(UDPClient.getReply(tentativa));
+                if(!mensagem.getMethodId().equals("FalhouRetransmissao"))
+                    break;
+                UDPClient.sendRequest(request);
+                tentativa++;
+            }
+            return mensagem.getArguments();
+        }
+        return "Cliente Fechado".getBytes();
     }
 
     private static byte[] empacotaMensagem(String objectRef, String method, byte[] args) {
@@ -52,6 +79,11 @@ public class ProxyGerenciarImovel {
             else break;
         }
         return new Gson().fromJson(String.valueOf(sb), Mensagem.class);
+    }
+
+    public static void closeSocket() {
+        doOperation("noObject", "noMethod", "closeSocket".getBytes());
+        UDPClient.closeSocket();
     }
 
 
